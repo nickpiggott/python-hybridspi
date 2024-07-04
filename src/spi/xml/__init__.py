@@ -29,8 +29,6 @@ SCHEMA_NS = 'http://www.worlddab.org/schemas/spi/31'
 SCHEMA_XSD = 'spi_31.xsd'
 XSI_NS = 'http://www.w3.org/2001/XMLSchema-instance'
 
-namespaces = { "spi" : SCHEMA_NS }
-
 logger = logging.getLogger('spi.xml')
 
 class MarshallListener:
@@ -804,7 +802,13 @@ def unmarshall(i, listener=UnmarshallListener()):
     doc = parse(d)
     root = doc.getroot()
     logger.debug('got root element: %s', root)
-    
+
+    global SCHEMA_NS, namespaces
+
+    #test first for spi 31    
+    SCHEMA_NS = 'http://www.worlddab.org/schemas/spi/31'
+    namespaces = { "spi" : SCHEMA_NS }
+
     if root.tag == '{%s}serviceInformation' % SCHEMA_NS:
         return parse_serviceinfo(root, listener)
     elif root.tag == '{%s}epg' % SCHEMA_NS:
@@ -814,6 +818,22 @@ def unmarshall(i, listener=UnmarshallListener()):
             return parse_groupinfo(root, listener)
         else:
             raise Exception('epg element does not contain either schedules or programme groups')
-    else:
-        raise Exception('Arrgh! this be neither serviceInformation nor epg - to Davy Jones\' locker with ye!')   
-    
+
+    #test next for spi 33    
+    SCHEMA_NS = 'http://www.worlddab.org/schemas/spi/33'
+    namespaces = { "spi" : SCHEMA_NS }
+
+    if root.tag == '{%s}serviceInformation' % SCHEMA_NS:
+        return parse_serviceinfo(root, listener)
+    elif root.tag == '{%s}epg' % SCHEMA_NS:
+        if len(root.findall("spi:schedule", namespaces)):
+            return parse_programmeinfo(root, listener)
+        if len(root.findall("spi:programmeGroups", namespaces)):
+            return parse_groupinfo(root, listener)
+        else:
+            raise Exception('epg element does not contain either schedules or programme groups')
+
+
+
+    raise Exception('Arrgh! this be neither serviceInformation nor epg - to Davy Jones\' locker with ye!')
+
