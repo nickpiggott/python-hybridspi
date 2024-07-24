@@ -808,6 +808,7 @@ def unmarshall(i, listener=UnmarshallListener()):
     #test first for spi 31    
     SCHEMA_NS = 'http://www.worlddab.org/schemas/spi/31'
     namespaces = { "spi" : SCHEMA_NS }
+    logger.debug('Now parsing the namespace %s', SCHEMA_NS)
 
     if root.tag == '{%s}serviceInformation' % SCHEMA_NS:
         return parse_serviceinfo(root, listener)
@@ -822,8 +823,26 @@ def unmarshall(i, listener=UnmarshallListener()):
     #test next for spi 33    
     SCHEMA_NS = 'http://www.worlddab.org/schemas/spi/33'
     namespaces = { "spi" : SCHEMA_NS }
+    logger.debug('Now parsing the namespace %s', SCHEMA_NS)
 
     if root.tag == '{%s}serviceInformation' % SCHEMA_NS:
+        return parse_serviceinfo(root, listener)
+    elif root.tag == '{%s}epg' % SCHEMA_NS:
+        if len(root.findall("spi:schedule", namespaces)):
+            return parse_programmeinfo(root, listener)
+        if len(root.findall("spi:programmeGroups", namespaces)):
+            return parse_groupinfo(root, listener)
+        else:
+            raise Exception('epg element does not contain either schedules or programme groups')
+
+    #test next for spi 34    
+    SCHEMA_NS = 'http://www.worlddab.org/schemas/spi'
+    namespaces = { "spi" : SCHEMA_NS }
+    logger.debug('Now parsing the namespace %s', SCHEMA_NS)
+
+    if root.tag == '{%s}serviceInformation' % SCHEMA_NS:
+        logger.debug('Matched root %s and going into parse', SCHEMA_NS)
+
         return parse_serviceinfo(root, listener)
     elif root.tag == '{%s}epg' % SCHEMA_NS:
         if len(root.findall("spi:schedule", namespaces)):
